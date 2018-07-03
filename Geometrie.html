@@ -1,0 +1,206 @@
+<DOCTYPE html>
+<html>
+<body>
+<canvas id="canvas" width="600" height="400" style="border: 1px solid black"></canvas>
+</body>
+</html>
+<script>
+	(function() {
+		"use strict";
+
+		function getCtx() {
+			const ctx = document.getElementById("canvas").getContext("2d");
+			ctx.fillStyle = "#0000FF";
+			ctx.strokeStyle = "#0000FF";
+			return ctx;
+		}
+		
+		class Punkt {
+			constructor(x, y) {
+				if (!Number.isNaN(x) && !Number.isNaN(y)) {
+					this.x = x;
+					this.y = y;
+
+					console.log(`Neuer Punkt (${x}|${y}) erstellt.`);
+                } else {
+					throw new Error("x und y müssen angegeben werden!");
+				}
+			}
+			
+			verdopple() {
+				return new Punkt(this.x, this.y);
+			}
+			
+			verschiebe(x, y) {
+				this.x += x || 0;
+				this.y += y || 0;
+
+				return this;
+			}
+			
+			darstellen() {
+				const ctx = getCtx();
+				ctx.fillRect(this.x, this.y, 5, 5);
+
+				return this;
+			}
+		}
+		
+		class Linie {
+			constructor(p1, p2) {
+				// p1 = origin punkt
+                if (p1 instanceof Punkt && p2 instanceof Punkt) {
+					this.p1 = p1;
+					this.p2 = p2;
+
+					console.log(`Neue Linie (${this.p1.x}|${this.p1.y}) - (${this.p2.x}|${this.p2.y}) erstellt.`);
+				} else {
+                	throw new Error("Es müssen zwei Punkte angegeben werden!");
+                }
+			}
+
+			verdopple() {
+				return new Linie(this.p1.verdopple(), this.p2.verdopple());
+            }
+
+			verschiebe(x, y) {
+				this.p1.verschiebe(x, y);
+				this.p2.verschiebe(x, y);
+
+                return this;
+			}
+			
+			darstellen() {
+				const ctx = getCtx();
+				ctx.beginPath();
+				ctx.moveTo(this.p1.x, this.p1.y);
+				ctx.lineTo(this.p2.x, this.p2.y);
+				ctx.stroke();
+
+				return this;
+			}
+		}
+
+		class Quadrat {
+			constructor(startPunkt, laenge) {
+				this.origin = startPunkt;
+
+				this.line1 = new Linie(startPunkt.verdopple(), new Punkt(startPunkt.x, startPunkt.y + laenge));
+				this.line2 = new Linie(startPunkt.verdopple(), new Punkt(startPunkt.x + laenge, startPunkt.y));
+
+				this.length = laenge;
+
+				console.log(`Neues Quadrat (${this.origin.x}|${this.origin.y}) - (${this.line2.p2.x}|${this.line2.p2.y}) erstellt.`);
+            }
+
+            verdopple() {
+				return new Quadrat(this.origin.verdopple(), this.length);
+            }
+
+            darstellen() {
+				this.line1.darstellen();
+				this.line2.darstellen();
+				this.line1.verdopple().verschiebe(this.length, 0).darstellen();
+				this.line2.verdopple().verschiebe(0, this.length).darstellen();
+
+				return this;
+            }
+
+            verschiebe(x, y) {
+				this.line1.verschiebe(x, y);
+				this.line2.verschiebe(x, y);
+
+				return this;
+            }
+
+            berechne() {
+                const flaeche = this.length * this.length;
+                console.log("Fläche des Quadrates: " + flaeche);
+
+                return this;
+            }
+        }
+
+        class Rechteck {
+			constructor(startPunkt, laenge, breite) {
+				this.origin = startPunkt;
+
+				this.line1 = new Linie(startPunkt.verdopple(), new Punkt(startPunkt.x + laenge, startPunkt.y));
+				this.line2 = new Linie(startPunkt.verdopple(), new Punkt(startPunkt.x, startPunkt.y + breite));
+
+				this.length = laenge;
+				this.width = breite;
+
+				console.log(`Neues Rechteck (${this.origin.x}|${this.origin.y}) - (${this.line2.p2.x}|${this.line2.p2.y}) erstellt.`);
+            }
+
+            verdopple() {
+				return new Rechteck(this.origin.verdopple(), this.length, this.width);
+            }
+
+            darstellen() {
+				this.line1.darstellen();
+				this.line2.darstellen();
+				this.line1.verdopple().verschiebe(0, this.width).darstellen();
+				this.line2.verdopple().verschiebe(this.length, 0).darstellen();
+
+				return this;
+            }
+
+            verschiebe(x, y) {
+				this.line1.verschiebe(x, y);
+				this.line2.verschiebe(x, y);
+
+				return this;
+            }
+
+            berechne() {
+				const flaeche = this.length * this.width;
+				console.log("Fläche des Rechtecks: " + flaeche);
+
+				return this;
+            }
+        }
+
+        class Kreis {
+			constructor(mitte, radius) {
+				this.origin = mitte;
+				this.radius = radius;
+
+				console.log(`Neuer Kreis (${this.origin.x}|${this.origin.y}) * ${this.radius} erstellt.`);
+            }
+
+            verdopple() {
+				return new Kreis(this.origin.verdopple(), this.radius);
+            }
+
+            darstellen() {
+				const ctx = getCtx();
+				ctx.beginPath();
+				ctx.arc(this.origin.x, this.origin.y, this.radius, 0, 2 * Math.PI);
+				ctx.stroke();
+
+				return this;
+            }
+
+            verschiebe(x, y) {
+				this.origin.verschiebe(x, y);
+
+				return this;
+            }
+
+            berechne() {
+				const flaeche = Math.PI * this.radius;
+				console.log("Fläche des Kreises: " + flaeche);
+
+				return this;
+            }
+        }
+
+        new Punkt(10, 10).darstellen();
+		new Linie(new Punkt(20, 20), new Punkt(20, 40)).darstellen();
+		new Quadrat(new Punkt(50, 50), 20).darstellen().berechne();
+		new Rechteck(new Punkt(100, 100), 50, 100).darstellen().berechne();
+		new Kreis(new Punkt(200, 200), 30).darstellen().berechne();
+	})();
+</script>
